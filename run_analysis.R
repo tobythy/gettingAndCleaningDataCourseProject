@@ -19,33 +19,38 @@ x_master <- rbind(x_test, x_train)
 y_master <- rbind(y_test, y_train)
 subject_master <- rbind(subject_test, subject_train)
 
-# names of variables and and activities 
+# names of variables and activities 
 features <- read.table("UCI HAR Dataset/features.txt")
 activity_labels <- read.table("UCI HAR Dataset/activity_labels.txt")
 activity_labels[,2] <- as.character(activity_labels[,2])
 
-# apply feature names to column names in x_master
-names(x_master) <- features$V2
+# name the activity variable
+names(y_train) <- "activity"
+names(y_test) <- "activity"
+# name the subejct variable 
+names(subject_test) <- "subject.id"
+names(subject_train) <- "subject.id"
 
-# change column name in y_master to "activity"
-names(y_master) <- "activity"
+# aplly the featurenames to the variable features 
+names(x_test) <- features$V2
+names(x_train) <- features$V2
 
-# change column name in subject_master to "subject.id"
-names(subject_master) <- "subject.id"
+# bind the documents togethere 
+all_test <- cbind(subject_test, y_test, x_test)
+all_train <- cbind(subject_train, y_train, x_train)
+all_data <- rbind(all_test,all_train)
 
-# create descriptive labels for activities
-y_master$activity <- factor(y_master$activity, levels = activity_labels[,1], labels = activity_labels[,2])
+# create a document with the mean and standard deviation, (activity and subject.id)
+all_data1 <- grepl("mean\\(\\)|std\\(\\)|subject.id|activity", names(all_data))
+all_data2 <- all_data[,all_data1]
 
-# merge datasets by column
-all_data <- cbind(subject_master, y_master, x_master)
+# name the data with appropiate activity labels
+all_data2$activity <- factor(all_data2$activity, levels = activity_labels[,1], labels = activity_labels[,2])
 
-# reshape data the data with the reshape2 package
+# reshape the data with the reshape2 package
 library(reshape2)
-
-# new column "variable" will contian the various features and "value" will contain their observed value
-all_melt <- melt(all_data, id = c("subject.id", "activity"))
-tidydata <- dcast(all_melt, subject.id + activity ~ variable, mean)
+mixed <- melt(alldata2, id = c("subject.id", "activity"))
+tidy_data <- dcast(mixed, subject.id + activity ~ variable, mean)
 
 # write the data out as csv file
-write.csv(tidydata, "tidydata.csv", row.names=FALSE)
-
+write.csv(tidy_data, "tidydata.csv", row.names=FALSE)
